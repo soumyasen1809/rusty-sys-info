@@ -1,5 +1,5 @@
 use simple_sys_info::{cpu::*, memory::memory_consumption_meas};
-use tokio::task;
+use tokio::{task, try_join};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -16,12 +16,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Start awaiting the future handles here
-    let cpu_meas = cpu_meas_handle.await?;
+    // let cpu_meas = cpu_meas_handle.await?;
+    // for meas in cpu_meas.cpu_time() {
+    //     println!("{}", meas);
+    // }
+
+    // let mem_cons = mem_cons_handle.await?;
+    // println!("{}", mem_cons);
+
+    // Alternatively, Use try_join! to await both handles concurrently
+    let (cpu_meas, mem_cons) = try_join!(cpu_meas_handle, mem_cons_handle)?;
     for meas in cpu_meas.cpu_time() {
         println!("{}", meas);
     }
-
-    let mem_cons = mem_cons_handle.await?;
     println!("{}", mem_cons);
 
     Ok(())
