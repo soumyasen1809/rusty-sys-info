@@ -56,7 +56,7 @@ impl CpuTime {
 
 impl Display for CpuTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}: {:.3}", self.cpu_id(), self.utilization()) // print till 3 digits
+        write!(f, "{} use: \t{:.3} %", self.cpu_id(), self.utilization()) // print till 3 digits
     }
 }
 
@@ -82,12 +82,10 @@ impl Display for CpuMeasurements {
 }
 
 pub async fn cpu_usage_meas() -> Result<CpuMeasurements, Box<dyn std::error::Error>> {
-    let cpu_meas_file = File::open(CPU_MEAS_PATH).await?;
-    let cpu_meas_contents = BufReader::new(cpu_meas_file);
-
     let mut all_cpus_time: Vec<CpuTime> = Vec::new();
 
-    // https://stackoverflow.com/questions/66846800/how-to-pass-every-line-from-a-text-file-as-an-argument-in-rust#:~:text=Here's%20an%20example%20of%20reading%20a%20file%20and
+    let cpu_meas_file = File::open(CPU_MEAS_PATH).await?;
+    let cpu_meas_contents = BufReader::new(cpu_meas_file);
     let mut line = cpu_meas_contents.lines();
     while let Some(l) = line.next_line().await? {
         if l.contains("cpu") && !l.contains("cpu ")
