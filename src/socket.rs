@@ -80,6 +80,28 @@ pub async fn net_socket_read() -> Result<SockStat, Box<dyn std::error::Error>> {
 }
 
 fn extract_socket_stat(line: &str) -> Result<usize, Box<dyn std::error::Error>> {
-    let sock_stat_elemts = line.split(" ").collect::<Vec<&str>>();
+    let sock_stat_elemts = line
+        .split(" ")
+        .collect::<Vec<&str>>()
+        .iter()
+        .filter(|s| **s != "")
+        .map(|s| s.to_string().clone())
+        .collect::<Vec<String>>();
     Ok(sock_stat_elemts[2].parse::<usize>()?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_socket_stat() {
+        let line = "TCP: inuse   8 orphan 0 tw 0   alloc 8 mem 4";
+        let result = extract_socket_stat(line);
+
+        assert!(result.is_ok());
+        let socket_stat = result.unwrap();
+
+        assert_eq!(socket_stat, 8);
+    }
 }
