@@ -57,18 +57,42 @@ pub async fn memory_consumption_meas() -> Result<MemoryMeasurments, Box<dyn std:
     let mut line = mem_meas_content.lines();
     while let Some(l) = line.next_line().await? {
         if l.contains("MemTotal:") {
-            let mem_data = l.split(" ").collect::<Vec<&str>>();
-            mem_total_val = mem_data[mem_data.len() - 2].parse::<u64>()?;
+            mem_total_val = extract_mem_consumption(l)?;
         } else if l.contains("MemFree:") {
-            let mem_data = l.split(" ").collect::<Vec<&str>>();
-            mem_free_val = mem_data[mem_data.len() - 2].parse::<u64>()?;
+            mem_free_val = extract_mem_consumption(l)?;
         } else if l.contains("MemAvailable:") {
-            let mem_data = l.split(" ").collect::<Vec<&str>>();
-            mem_avail_val = mem_data[mem_data.len() - 2].parse::<u64>()?;
+            mem_avail_val = extract_mem_consumption(l)?;
         }
     }
 
     let mem_meas = MemoryMeasurments::new(mem_total_val, mem_free_val, mem_avail_val);
 
     Ok(mem_meas)
+}
+
+fn extract_mem_consumption(line: String) -> Result<u64, Box<dyn std::error::Error>> {
+    let mem_data = line
+        .split(" ")
+        .collect::<Vec<&str>>()
+        .iter()
+        .filter(|s| **s != "")
+        .map(|s| s.to_string().clone())
+        .collect::<Vec<String>>();
+    Ok(mem_data[mem_data.len() - 2].parse::<u64>()?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_mem_consumption() {
+        let line = "MemTotal:   16384   kB";
+        let result = extract_mem_consumption(line.to_string());
+
+        assert!(result.is_ok());
+        let mem_consumption = result.unwrap();
+
+        assert_eq!(mem_consumption, 16384);
+    }
 }
