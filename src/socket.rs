@@ -5,6 +5,8 @@ use tokio::{
     io::{AsyncBufReadExt, BufReader},
 };
 
+use crate::Measurements;
+
 const SOCK_MEAS_PATH: &str = "/proc/net/sockstat";
 
 pub struct SockStat {
@@ -42,6 +44,12 @@ impl Display for SockStat {
             "TCP: \t\t{} \nUDP: \t\t{} \nUPD lite: \t{}",
             self.tcp_inuse, self.udp_inuse, self.udp_lite_inuse
         )
+    }
+}
+
+impl Measurements for SockStat {
+    fn print_info(&self) {
+        println!("{}", self);
     }
 }
 

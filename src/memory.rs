@@ -5,6 +5,8 @@ use tokio::{
     io::{AsyncBufReadExt, BufReader},
 };
 
+use crate::Measurements;
+
 const MEMORY_MEAS_PATH: &str = "/proc/meminfo";
 
 pub struct MemoryMeasurments {
@@ -44,6 +46,12 @@ impl Display for MemoryMeasurments {
             self.mem_free(),
             self.mem_avail()
         )
+    }
+}
+
+impl Measurements for MemoryMeasurments {
+    fn print_info(&self) {
+        println!("{}", self);
     }
 }
 

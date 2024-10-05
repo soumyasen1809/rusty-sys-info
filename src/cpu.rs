@@ -5,6 +5,8 @@ use tokio::{
     io::{AsyncBufReadExt, BufReader},
 };
 
+use crate::Measurements;
+
 const CPU_MEAS_PATH: &str = "/proc/stat";
 
 #[derive(Default, Debug)]
@@ -78,6 +80,14 @@ impl CpuMeasurements {
 impl Display for CpuMeasurements {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self.cpu_time())
+    }
+}
+
+impl Measurements for CpuMeasurements {
+    fn print_info(&self) {
+        for meas in self.cpu_time() {
+            println!("{}", meas);
+        }
     }
 }
 

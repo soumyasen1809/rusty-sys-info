@@ -5,6 +5,8 @@ use tokio::{
     io::{AsyncBufReadExt, BufReader},
 };
 
+use crate::Measurements;
+
 const DISK_STAT_PATH: &str = "/proc/diskstats";
 
 #[derive(Debug)]
@@ -94,6 +96,14 @@ impl DiskStatMeasurements {
 impl Display for DiskStatMeasurements {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.sd_utilization())
+    }
+}
+
+impl Measurements for DiskStatMeasurements {
+    fn print_info(&self) {
+        for sd in self.sd_utilization() {
+            println!("{}", sd);
+        }
     }
 }
 
