@@ -110,7 +110,13 @@ pub async fn cpu_usage_meas() -> Result<CpuMeasurements, Box<dyn std::error::Err
 /// *softirq* : servicing softirqs
 /// https://www.linuxhowtos.org/System/procstat.htm#:~:text=/proc/stat%20explained%20Various%20pieces%20of%20information%20about%20kernel
 fn extract_cpu_utilization(line: String) -> Result<CpuTime, Box<dyn std::error::Error>> {
-    let cpu_data = line.split(" ").collect::<Vec<&str>>();
+    let cpu_data = line
+        .split(" ")
+        .collect::<Vec<&str>>()
+        .iter()
+        .filter(|s| **s != "")
+        .map(|s| s.to_string().clone())
+        .collect::<Vec<String>>();
     let mut cpu_time = get_cpu_times(cpu_data)?;
     compute_cpu_utilization(&mut cpu_time);
 
@@ -119,8 +125,8 @@ fn extract_cpu_utilization(line: String) -> Result<CpuTime, Box<dyn std::error::
 
 /// awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}'
 /// https://shreve.io/posts/calculating-current-cpu-usage-on-linux/
-fn get_cpu_times(cpu_data: Vec<&str>) -> Result<CpuTime, Box<dyn std::error::Error>> {
-    let cpu_id = cpu_data[0];
+fn get_cpu_times(cpu_data: Vec<String>) -> Result<CpuTime, Box<dyn std::error::Error>> {
+    let cpu_id = &cpu_data[0];
     let user_time = cpu_data[1].parse::<u64>()?;
     let system_time = cpu_data[3].parse::<u64>()?;
     let idle_time = cpu_data[4].parse::<u64>()?;
@@ -140,4 +146,33 @@ fn get_cpu_times(cpu_data: Vec<&str>) -> Result<CpuTime, Box<dyn std::error::Err
 fn compute_cpu_utilization(cpu_time: &mut CpuTime) {
     cpu_time.utilization = (cpu_time.user_time() + cpu_time.system_time()) as f64 * 100.0
         / ((cpu_time.user_time() + cpu_time.system_time() + cpu_time.idle_time()) as f64);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_approx_eq(a: f64, b: f64, epsilon: f64) {
+        assert!(
+            (a - b).abs() < epsilon,
+            "Values are not approximately equal: {} vs {}",
+            a,
+            b
+        );
+    }
+
+    #[test]
+    fn test_extract_cpu_utilization() {
+        let line = "cpu   4705 0   1234 5678 0 0 0 0 0   0";
+        let result = extract_cpu_utilization(line.to_string());
+
+        assert!(result.is_ok());
+        let cpu_time = result.unwrap();
+
+        assert_eq!(cpu_time.cpu_id(), "cpu");
+        assert_eq!(cpu_time.user_time(), 4705);
+        assert_eq!(cpu_time.system_time(), 1234);
+        assert_eq!(cpu_time.idle_time(), 5678);
+        assert_approx_eq(cpu_time.utilization(), 51.1233, 1e-3);
+    }
 }
