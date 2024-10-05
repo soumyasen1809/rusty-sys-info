@@ -39,7 +39,7 @@ impl Display for MemoryMeasurments {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "mem total: \t{} kB\nmem free: \t{} kB\nmem avail: \t{} kB\n",
+            "mem total: \t{} kB\nmem free: \t{} kB\nmem avail: \t{} kB",
             self.mem_total(),
             self.mem_free(),
             self.mem_avail()
