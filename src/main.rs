@@ -1,4 +1,4 @@
-use simple_sys_info::{cpu::*, memory::memory_consumption_meas};
+use simple_sys_info::{cpu::*, disk::disk_utility_meas, memory::memory_consumption_meas};
 use tokio::{task, try_join};
 
 #[tokio::main]
@@ -15,21 +15,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mem_cons // return the mem_cons from the task::spawn()
     });
 
-    // Start awaiting the future handles here
-    // let cpu_meas = cpu_meas_handle.await?;
-    // for meas in cpu_meas.cpu_time() {
-    //     println!("{}", meas);
-    // }
+    let disk_stats_handle = task::spawn(async {
+        let disk_util = disk_utility_meas()
+            .await
+            .expect("Error in DiskStatMeasurement");
+        disk_util // return the disk_util from the task::spawn()
+    });
 
-    // let mem_cons = mem_cons_handle.await?;
-    // println!("{}", mem_cons);
-
-    // Alternatively, Use try_join! to await both handles concurrently
-    let (cpu_meas, mem_cons) = try_join!(cpu_meas_handle, mem_cons_handle)?;
+    // Use try_join! to await both handles concurrently
+    let (cpu_meas, mem_cons, disk_stat) =
+        try_join!(cpu_meas_handle, mem_cons_handle, disk_stats_handle)?;
     for meas in cpu_meas.cpu_time() {
         println!("{}", meas);
     }
     println!("{}", mem_cons);
+    for sd in disk_stat.sd_utilization() {
+        println!("{}", sd);
+    }
 
     Ok(())
 }
