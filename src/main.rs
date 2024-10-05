@@ -1,6 +1,6 @@
 use simple_sys_info::{
-    cpu::*, disk::disk_utility_meas, memory::memory_consumption_meas, socket::net_socket_read,
-    Measurements,
+    cpu::cpu_usage_meas, disk::disk_utility_meas, memory::memory_consumption_meas,
+    socket::net_socket_read, Measurements,
 };
 use tokio::{sync::mpsc, task};
 
@@ -13,6 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     task::spawn(async move {
         for _ in 0..100 {
+            // loop{    // continuously poll data
             let cpu_meas: Box<dyn Measurements> =
                 Box::new(cpu_usage_meas().await.expect("Error in CpuMeasurement"));
             tx.send(cpu_meas)
@@ -23,6 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     task::spawn(async move {
         for _ in 0..100 {
+            // loop{
             let mem_cons: Box<dyn Measurements> = Box::new(
                 memory_consumption_meas()
                     .await
@@ -36,6 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     task::spawn(async move {
         for _ in 0..100 {
+            // loop{
             let disk_util: Box<dyn Measurements> = Box::new(
                 disk_utility_meas()
                     .await
@@ -48,14 +51,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     tokio::spawn(async move {
-        let socket_stat: Box<dyn Measurements> = Box::new(
-            net_socket_read()
+        for _ in 0..100 {
+            // loop{
+            let socket_stat: Box<dyn Measurements> = Box::new(
+                net_socket_read()
+                    .await
+                    .expect("Error in SocketStatMeasurement"),
+            );
+            tx4.send(socket_stat)
                 .await
-                .expect("Error in SocketStatMeasurement"),
-        );
-        tx4.send(socket_stat)
-            .await
-            .expect("Error in sending SocketStatMeasurement");
+                .expect("Error in sending SocketStatMeasurement");
+        }
     });
 
     while let Some(res) = rx.recv().await {
