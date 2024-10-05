@@ -123,7 +123,7 @@ fn extract_disk_statistics(line: String) -> Result<Sd, Box<dyn std::error::Error
         .split(" ")
         .collect::<Vec<&str>>()
         .iter()
-        .filter(|s| **s != "")
+        .filter(|s| **s != "") // filter any empty elemets in the vector
         .map(|s| s.to_string().clone())
         .collect::<Vec<String>>();
 
@@ -142,4 +142,24 @@ fn extract_disk_statistics(line: String) -> Result<Sd, Box<dyn std::error::Error
     );
 
     Ok(sd)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_disk_statistics() {
+        let line = "8   0 sda   157698 0 123456 0 789012 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
+        let result = extract_disk_statistics(line.to_string());
+
+        assert!(result.is_ok());
+        let sd = result.unwrap();
+
+        assert_eq!(sd.name, "sda");
+        assert_eq!(sd.version, "8.0");
+        assert_eq!(sd.reads_completed, 157698);
+        assert_eq!(sd.writes_completed, 789012);
+        assert_eq!(sd.io_in_progress, 0);
+    }
 }
