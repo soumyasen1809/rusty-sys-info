@@ -14,8 +14,9 @@ pub async fn fetch_all_data(
     let tx4 = tx.clone();
 
     task::spawn(async move {
-        for _ in 0..100 {
-            // loop{    // continuously poll data
+        // for _ in 0..100 {
+        loop {
+            // continuously poll data
             let cpu_meas: Box<dyn Measurements> =
                 Box::new(cpu_usage_meas().await.expect("Error in CpuMeasurement"));
             tx.send(cpu_meas)
@@ -25,8 +26,8 @@ pub async fn fetch_all_data(
     });
 
     task::spawn(async move {
-        for _ in 0..100 {
-            // loop{
+        // for _ in 0..100 {
+        loop {
             let mem_cons: Box<dyn Measurements> = Box::new(
                 memory_consumption_meas()
                     .await
@@ -39,8 +40,8 @@ pub async fn fetch_all_data(
     });
 
     task::spawn(async move {
-        for _ in 0..100 {
-            // loop{
+        // for _ in 0..100 {
+        loop {
             let disk_util: Box<dyn Measurements> = Box::new(
                 disk_utility_meas()
                     .await
@@ -53,8 +54,8 @@ pub async fn fetch_all_data(
     });
 
     tokio::spawn(async move {
-        for _ in 0..100 {
-            // loop{
+        // for _ in 0..100 {
+        loop {
             let socket_stat: Box<dyn Measurements> = Box::new(
                 net_socket_read()
                     .await

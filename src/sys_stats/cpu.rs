@@ -62,7 +62,7 @@ impl Display for CpuTime {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct CpuMeasurements {
     cpu_time: Vec<CpuTime>,
 }
