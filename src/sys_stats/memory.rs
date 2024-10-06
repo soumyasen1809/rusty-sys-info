@@ -9,6 +9,7 @@ use crate::Measurements;
 
 const MEMORY_MEAS_PATH: &str = "/proc/meminfo";
 
+#[derive(Debug)]
 pub struct MemoryMeasurments {
     mem_total: u64,
     mem_free: u64,

@@ -1,8 +1,9 @@
-pub mod cpu;
-pub mod disk;
-pub mod memory;
-pub mod socket;
+use std::fmt::Debug;
+use std::fmt::Display;
 
-pub trait Measurements: Send + Sync {
+pub mod sys_stats;
+pub mod ui;
+
+pub trait Measurements: Send + Sync + Debug + Display {
     fn print_info(&self) {}
 }

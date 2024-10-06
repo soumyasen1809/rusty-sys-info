@@ -9,6 +9,7 @@ use crate::Measurements;
 
 const SOCK_MEAS_PATH: &str = "/proc/net/sockstat";
 
+#[derive(Debug)]
 pub struct SockStat {
     tcp_inuse: usize,
     udp_inuse: usize,
