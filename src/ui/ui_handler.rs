@@ -8,11 +8,19 @@ use ratatui::{
         terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
         ExecutableCommand,
     },
+    layout::{Constraint, Direction, Layout},
+    text::ToText,
     widgets::{Block, Paragraph},
     Frame, Terminal,
 };
 
-use crate::Measurements;
+use crate::{
+    sys_stats::{
+        cpu::CpuMeasurements, disk::DiskStatMeasurements, memory::MemoryMeasurments,
+        socket::SockStat,
+    },
+    Measurements,
+};
 
 pub async fn create_ui(mut rx: Receiver<Box<dyn Measurements>>) -> io::Result<()> {
     enable_raw_mode()?;
@@ -51,9 +59,44 @@ fn ui(frame: &mut Frame, rx: &mut Receiver<Box<dyn Measurements>>) {
         // If you have recv, use it in a while loop, if you have
         // try_recv, use it with if case.
         // while let Some(res) = rx.recv().await
-        frame.render_widget(
-            Paragraph::new(format!("{:?}", res)).block(Block::bordered().title("SysInfo")),
-            frame.area(),
-        );
+
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(
+                [
+                    Constraint::Percentage(24),
+                    Constraint::Percentage(24),
+                    Constraint::Percentage(24),
+                    Constraint::Percentage(24),
+                ]
+                .as_ref(),
+            )
+            .split(frame.area());
+
+        if let Some(cpu_data) = res.as_any().downcast_ref::<CpuMeasurements>() {
+            frame.render_widget(
+                Paragraph::new(format!("{}", cpu_data.to_text()))
+                    .block(Block::bordered().title("CpuInfo")),
+                chunks[0],
+            );
+        } else if let Some(memory_data) = res.as_any().downcast_ref::<MemoryMeasurments>() {
+            frame.render_widget(
+                Paragraph::new(format!("{}", memory_data.to_text()))
+                    .block(Block::bordered().title("Memory Info")),
+                chunks[1],
+            );
+        } else if let Some(disk_data) = res.as_any().downcast_ref::<DiskStatMeasurements>() {
+            frame.render_widget(
+                Paragraph::new(format!("{}", disk_data.to_text()))
+                    .block(Block::bordered().title("Disk Info")),
+                chunks[2],
+            );
+        } else if let Some(socket_data) = res.as_any().downcast_ref::<SockStat>() {
+            frame.render_widget(
+                Paragraph::new(format!("{}", socket_data.to_text()))
+                    .block(Block::bordered().title("Socket Info")),
+                chunks[3],
+            );
+        }
     }
 }

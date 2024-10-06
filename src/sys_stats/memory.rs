@@ -54,6 +54,10 @@ impl Measurements for MemoryMeasurments {
     fn print_info(&self) {
         println!("{}", self);
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 pub async fn memory_consumption_meas() -> Result<MemoryMeasurments, Box<dyn std::error::Error>> {

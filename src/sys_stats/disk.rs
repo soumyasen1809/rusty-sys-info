@@ -105,6 +105,10 @@ impl Measurements for DiskStatMeasurements {
             println!("{}", sd);
         }
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 pub async fn disk_utility_meas() -> Result<DiskStatMeasurements, Box<dyn std::error::Error>> {

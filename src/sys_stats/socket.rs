@@ -52,6 +52,10 @@ impl Measurements for SockStat {
     fn print_info(&self) {
         println!("{}", self);
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 /// The `/proc/net/sockstat6` file in Linux provides statistics about IPv6 sockets.

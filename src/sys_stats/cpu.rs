@@ -89,6 +89,10 @@ impl Measurements for CpuMeasurements {
             println!("{}", meas);
         }
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 pub async fn cpu_usage_meas() -> Result<CpuMeasurements, Box<dyn std::error::Error>> {
