@@ -6,6 +6,12 @@ use tokio::{sync::mpsc, task};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    fetch_all_data().await?;
+
+    Ok(())
+}
+
+async fn fetch_all_data() -> Result<(), Box<dyn std::error::Error>> {
     let (tx, mut rx) = mpsc::channel(100);
     let tx2 = tx.clone();
     let tx3 = tx.clone();
