@@ -21,14 +21,18 @@ use crate::{
     Measurements,
 };
 
+use super::ui_measurements::UIMeasurements;
+
 pub async fn create_ui(mut rx: Receiver<Box<dyn Measurements>>) -> io::Result<()> {
     enable_raw_mode()?;
     stdout().execute(EnterAlternateScreen)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 
+    let mut ui_measurements_state = UIMeasurements::default();
+
     let mut should_quit = false;
     while !should_quit {
-        terminal.draw(|frame| draw_ui(frame, &mut rx))?;
+        terminal.draw(|frame| draw_ui(frame, &mut rx, &mut ui_measurements_state))?;
         should_quit = handle_events().await?;
     }
 
@@ -38,7 +42,7 @@ pub async fn create_ui(mut rx: Receiver<Box<dyn Measurements>>) -> io::Result<()
 }
 
 async fn handle_events() -> io::Result<bool> {
-    if event::poll(std::time::Duration::from_secs(1))? {
+    if event::poll(std::time::Duration::from_millis(50))? {
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Press && key.code == KeyCode::Char('q') {
                 return Ok(true);
@@ -48,7 +52,11 @@ async fn handle_events() -> io::Result<bool> {
     Ok(false)
 }
 
-fn draw_ui(frame: &mut Frame, rx: &mut Receiver<Box<dyn Measurements>>) {
+fn draw_ui(
+    frame: &mut Frame,
+    rx: &mut Receiver<Box<dyn Measurements>>,
+    ui_measurements_state: &mut UIMeasurements,
+) {
     if let Ok(res) = rx.try_recv() {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -63,36 +71,33 @@ fn draw_ui(frame: &mut Frame, rx: &mut Receiver<Box<dyn Measurements>>) {
             )
             .split(frame.area());
 
-        let mut ui_cpu_data = CpuMeasurements::default();
-        let mut ui_memory_data = MemoryMeasurments::default();
-        let mut ui_disk_data = DiskStatMeasurements::default();
-        let mut ui_socket_data = SocketStatMeasurements::default();
-
         if let Some(cpu_data) = res.as_any().downcast_ref::<CpuMeasurements>() {
-            ui_cpu_data = cpu_data.clone();
+            ui_measurements_state.ui_cpu_data = cpu_data.clone();
         } else if let Some(memory_data) = res.as_any().downcast_ref::<MemoryMeasurments>() {
-            ui_memory_data = memory_data.clone();
+            ui_measurements_state.ui_memory_data = memory_data.clone();
         } else if let Some(disk_data) = res.as_any().downcast_ref::<DiskStatMeasurements>() {
-            ui_disk_data = disk_data.clone();
+            ui_measurements_state.ui_disk_data = disk_data.clone();
         } else if let Some(socket_data) = res.as_any().downcast_ref::<SocketStatMeasurements>() {
-            ui_socket_data = socket_data.clone();
+            ui_measurements_state.ui_socket_data = socket_data.clone();
         }
 
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_cpu_data)).block(Block::bordered().title("CpuInfo")),
+            Paragraph::new(format!("{}", ui_measurements_state.ui_cpu_data()))
+                .block(Block::bordered().title("CpuInfo")),
             chunks[0],
         );
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_memory_data))
+            Paragraph::new(format!("{}", ui_measurements_state.ui_memory_data()))
                 .block(Block::bordered().title("MemoryInfo")),
             chunks[1],
         );
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_disk_data)).block(Block::bordered().title("DiskInfo")),
+            Paragraph::new(format!("{}", ui_measurements_state.ui_disk_data()))
+                .block(Block::bordered().title("DiskInfo")),
             chunks[2],
         );
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_socket_data))
+            Paragraph::new(format!("{}", ui_measurements_state.ui_socket_data()))
                 .block(Block::bordered().title("SocketInfo")),
             chunks[3],
         );
