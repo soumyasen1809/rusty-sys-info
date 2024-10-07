@@ -9,6 +9,7 @@ use ratatui::{
         ExecutableCommand,
     },
     layout::{Constraint, Direction, Layout},
+    style::{Style, Stylize},
     widgets::{Block, Paragraph},
     Frame, Terminal,
 };
@@ -59,7 +60,7 @@ fn draw_ui(
 ) {
     if let Ok(res) = rx.try_recv() {
         let chunks = Layout::default()
-            .direction(Direction::Vertical)
+            .direction(Direction::Horizontal)
             .constraints(
                 [
                     Constraint::Percentage(24),
@@ -82,23 +83,39 @@ fn draw_ui(
         }
 
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_measurements_state.ui_cpu_data()))
-                .block(Block::bordered().title("CpuInfo")),
+            Paragraph::new(format!("{}", ui_measurements_state.ui_cpu_data())).block(
+                Block::bordered()
+                    .title("CpuInfo")
+                    .title_alignment(ratatui::layout::Alignment::Center)
+                    .border_style(Style::new().red()),
+            ),
             chunks[0],
         );
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_measurements_state.ui_memory_data()))
-                .block(Block::bordered().title("MemoryInfo")),
+            Paragraph::new(format!("{}", ui_measurements_state.ui_memory_data())).block(
+                Block::bordered()
+                    .title("MemoryInfo")
+                    .title_alignment(ratatui::layout::Alignment::Center)
+                    .border_style(Style::new().green()),
+            ),
             chunks[1],
         );
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_measurements_state.ui_disk_data()))
-                .block(Block::bordered().title("DiskInfo")),
+            Paragraph::new(format!("{}", ui_measurements_state.ui_disk_data())).block(
+                Block::bordered()
+                    .title("DiskInfo")
+                    .title_alignment(ratatui::layout::Alignment::Center)
+                    .border_style(Style::new().blue()),
+            ),
             chunks[2],
         );
         frame.render_widget(
-            Paragraph::new(format!("{}", ui_measurements_state.ui_socket_data()))
-                .block(Block::bordered().title("SocketInfo")),
+            Paragraph::new(format!("{}", ui_measurements_state.ui_socket_data())).block(
+                Block::bordered()
+                    .title("SocketInfo")
+                    .title_alignment(ratatui::layout::Alignment::Center)
+                    .border_style(Style::new().yellow()),
+            ),
             chunks[3],
         );
     }
