@@ -16,7 +16,7 @@ use ratatui::{
 use crate::{
     sys_stats::{
         cpu::CpuMeasurements, disk::DiskStatMeasurements, memory::MemoryMeasurments,
-        socket::SockStat,
+        socket::SocketStatMeasurements,
     },
     Measurements,
 };
@@ -28,7 +28,7 @@ pub async fn create_ui(mut rx: Receiver<Box<dyn Measurements>>) -> io::Result<()
 
     let mut should_quit = false;
     while !should_quit {
-        terminal.draw(|frame| ui(frame, &mut rx))?;
+        terminal.draw(|frame| draw_ui(frame, &mut rx))?;
         should_quit = handle_events().await?;
     }
 
@@ -48,7 +48,7 @@ async fn handle_events() -> io::Result<bool> {
     Ok(false)
 }
 
-fn ui(frame: &mut Frame, rx: &mut Receiver<Box<dyn Measurements>>) {
+fn draw_ui(frame: &mut Frame, rx: &mut Receiver<Box<dyn Measurements>>) {
     if let Ok(res) = rx.try_recv() {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -63,91 +63,38 @@ fn ui(frame: &mut Frame, rx: &mut Receiver<Box<dyn Measurements>>) {
             )
             .split(frame.area());
 
+        let mut ui_cpu_data = CpuMeasurements::default();
+        let mut ui_memory_data = MemoryMeasurments::default();
+        let mut ui_disk_data = DiskStatMeasurements::default();
+        let mut ui_socket_data = SocketStatMeasurements::default();
+
         if let Some(cpu_data) = res.as_any().downcast_ref::<CpuMeasurements>() {
-            frame.render_widget(
-                Paragraph::new(format!("{}", cpu_data)).block(Block::bordered().title("CpuInfo")),
-                chunks[0],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", MemoryMeasurments::default()))
-                    .block(Block::bordered().title("MemoryInfo")),
-                chunks[1],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", DiskStatMeasurements::default()))
-                    .block(Block::bordered().title("DiskInfo")),
-                chunks[2],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", SockStat::default()))
-                    .block(Block::bordered().title("SocketInfo")),
-                chunks[3],
-            );
+            ui_cpu_data = cpu_data.clone();
+        } else if let Some(memory_data) = res.as_any().downcast_ref::<MemoryMeasurments>() {
+            ui_memory_data = memory_data.clone();
+        } else if let Some(disk_data) = res.as_any().downcast_ref::<DiskStatMeasurements>() {
+            ui_disk_data = disk_data.clone();
+        } else if let Some(socket_data) = res.as_any().downcast_ref::<SocketStatMeasurements>() {
+            ui_socket_data = socket_data.clone();
         }
-        if let Some(memory_data) = res.as_any().downcast_ref::<MemoryMeasurments>() {
-            frame.render_widget(
-                Paragraph::new(format!("{}", memory_data))
-                    .block(Block::bordered().title("MemoryInfo")),
-                chunks[1],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", CpuMeasurements::default()))
-                    .block(Block::bordered().title("CpuInfo")),
-                chunks[0],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", DiskStatMeasurements::default()))
-                    .block(Block::bordered().title("DiskInfo")),
-                chunks[2],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", SockStat::default()))
-                    .block(Block::bordered().title("SocketInfo")),
-                chunks[3],
-            );
-        }
-        if let Some(disk_data) = res.as_any().downcast_ref::<DiskStatMeasurements>() {
-            frame.render_widget(
-                Paragraph::new(format!("{}", disk_data)).block(Block::bordered().title("DiskInfo")),
-                chunks[2],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", CpuMeasurements::default()))
-                    .block(Block::bordered().title("CpuInfo")),
-                chunks[0],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", MemoryMeasurments::default()))
-                    .block(Block::bordered().title("MemoryInfo")),
-                chunks[1],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", SockStat::default()))
-                    .block(Block::bordered().title("SocketInfo")),
-                chunks[3],
-            );
-        }
-        if let Some(socket_data) = res.as_any().downcast_ref::<SockStat>() {
-            frame.render_widget(
-                Paragraph::new(format!("{}", socket_data))
-                    .block(Block::bordered().title("Socket Info")),
-                chunks[3],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", CpuMeasurements::default()))
-                    .block(Block::bordered().title("CpuInfo")),
-                chunks[0],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", MemoryMeasurments::default()))
-                    .block(Block::bordered().title("MemoryInfo")),
-                chunks[1],
-            );
-            frame.render_widget(
-                Paragraph::new(format!("{}", DiskStatMeasurements::default()))
-                    .block(Block::bordered().title("DiskInfo")),
-                chunks[2],
-            );
-        }
+
+        frame.render_widget(
+            Paragraph::new(format!("{}", ui_cpu_data)).block(Block::bordered().title("CpuInfo")),
+            chunks[0],
+        );
+        frame.render_widget(
+            Paragraph::new(format!("{}", ui_memory_data))
+                .block(Block::bordered().title("MemoryInfo")),
+            chunks[1],
+        );
+        frame.render_widget(
+            Paragraph::new(format!("{}", ui_disk_data)).block(Block::bordered().title("DiskInfo")),
+            chunks[2],
+        );
+        frame.render_widget(
+            Paragraph::new(format!("{}", ui_socket_data))
+                .block(Block::bordered().title("SocketInfo")),
+            chunks[3],
+        );
     }
 }

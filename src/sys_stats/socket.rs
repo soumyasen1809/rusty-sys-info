@@ -9,14 +9,14 @@ use crate::Measurements;
 
 const SOCK_MEAS_PATH: &str = "/proc/net/sockstat";
 
-#[derive(Default)]
-pub struct SockStat {
+#[derive(Default, Clone)]
+pub struct SocketStatMeasurements {
     tcp_inuse: usize,
     udp_inuse: usize,
     udp_lite_inuse: usize,
 }
 
-impl SockStat {
+impl SocketStatMeasurements {
     pub fn new(tcp_inuse: usize, udp_inuse: usize, udp_lite_inuse: usize) -> Self {
         Self {
             tcp_inuse,
@@ -38,7 +38,7 @@ impl SockStat {
     }
 }
 
-impl Display for SockStat {
+impl Display for SocketStatMeasurements {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -48,7 +48,7 @@ impl Display for SockStat {
     }
 }
 
-impl Measurements for SockStat {
+impl Measurements for SocketStatMeasurements {
     fn print_info(&self) {
         println!("{}", self);
     }
@@ -67,7 +67,7 @@ impl Measurements for SockStat {
 /// UDPLITE: Indicates the number of UDP-Lite sockets in use.
 /// RAW: Lists the number of raw sockets in use.
 /// FRAG: Provides information about the number of IP fragments currently in use.
-pub async fn net_socket_read() -> Result<SockStat, Box<dyn std::error::Error>> {
+pub async fn net_socket_read() -> Result<SocketStatMeasurements, Box<dyn std::error::Error>> {
     let net_sock_file = File::open(SOCK_MEAS_PATH).await?;
     let net_sock_contents = BufReader::new(net_sock_file);
     let mut line = net_sock_contents.lines();
@@ -88,7 +88,7 @@ pub async fn net_socket_read() -> Result<SockStat, Box<dyn std::error::Error>> {
         }
     }
 
-    let sock_stat = SockStat::new(tcp_inuse, udp_inuse, udp_lite_inuse);
+    let sock_stat = SocketStatMeasurements::new(tcp_inuse, udp_inuse, udp_lite_inuse);
     Ok(sock_stat)
 }
 

@@ -9,7 +9,7 @@ use crate::Measurements;
 
 const DISK_STAT_PATH: &str = "/proc/diskstats";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sd {
     name: String,
     version: String, // Major number.Minor number
@@ -78,7 +78,7 @@ impl Display for Sd {
 /// Time spent doing I/Os (ms): The amount of time (in milliseconds) that has been spent doing I/O operations.
 /// Weighted time spent doing I/Os (ms): The amount of time (in milliseconds) that has been spent doing I/O operations, weighted by the time that the I/O operations take.
 /// https://cleveruptime.com/docs/files/proc-diskstats
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct DiskStatMeasurements {
     sd_utilization: Vec<Sd>,
 }
