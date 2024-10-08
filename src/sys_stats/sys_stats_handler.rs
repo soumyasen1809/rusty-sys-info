@@ -6,12 +6,15 @@ use crate::sys_stats::{
 };
 use crate::Measurements;
 
+use super::nvidia_gpu::nvidia_gpu_measurements;
+
 pub async fn fetch_all_data(
     tx: Sender<Box<dyn Measurements>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let tx2 = tx.clone();
     let tx3 = tx.clone();
     let tx4 = tx.clone();
+    let tx5 = tx.clone();
 
     task::spawn(async move {
         loop {
@@ -60,6 +63,19 @@ pub async fn fetch_all_data(
             tx4.send(socket_stat)
                 .await
                 .expect("Error in sending SocketStatMeasurement");
+        }
+    });
+
+    tokio::spawn(async move {
+        loop {
+            let nvidia_gpu_stat: Box<dyn Measurements> = Box::new(
+                nvidia_gpu_measurements()
+                    .await
+                    .expect("Error in NvidiaGPUMeasurement"),
+            );
+            tx5.send(nvidia_gpu_stat)
+                .await
+                .expect("Error in sending NvidiaGPUMeasurement");
         }
     });
 
