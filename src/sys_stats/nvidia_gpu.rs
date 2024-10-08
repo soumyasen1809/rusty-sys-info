@@ -38,7 +38,7 @@ pub struct NvidiaGpuMeasurements {
     gpu_max_temp: u64,
     power_usage: f64,
     power_capacity: f64,
-    gpu_utilization: u64,
+    gpu_utilization: f64,
 }
 
 impl NvidiaGpuMeasurements {
@@ -49,7 +49,7 @@ impl NvidiaGpuMeasurements {
         gpu_max_temp: u64,
         power_usage: f64,
         power_capacity: f64,
-        gpu_utilization: u64,
+        gpu_utilization: f64,
     ) -> Self {
         Self {
             gpu_name,
@@ -86,7 +86,7 @@ impl NvidiaGpuMeasurements {
         self.power_capacity
     }
 
-    pub fn gpu_utilization(&self) -> u64 {
+    pub fn gpu_utilization(&self) -> f64 {
         self.gpu_utilization
     }
 }
@@ -139,8 +139,6 @@ pub async fn nvidia_gpu_measurements() -> Result<NvidiaGpuMeasurements, Box<dyn 
             nvidia_gpu_meas.gpu_utilization = extract_nvidia_gpu_data_numeric_value(l)?;
         }
     }
-
-    println!("{}", nvidia_gpu_meas);
 
     Ok(nvidia_gpu_meas)
 }

@@ -17,7 +17,7 @@ use ratatui::{
 use crate::{
     sys_stats::{
         cpu::CpuMeasurements, disk::DiskStatMeasurements, memory::MemoryMeasurments,
-        socket::SocketStatMeasurements,
+        nvidia_gpu::NvidiaGpuMeasurements, socket::SocketStatMeasurements,
     },
     Measurements,
 };
@@ -71,6 +71,10 @@ fn draw_ui(
                 .as_ref(),
             )
             .split(frame.area());
+        let split_second_chunk = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(chunks[1]);
 
         if let Some(cpu_data) = res.as_any().downcast_ref::<CpuMeasurements>() {
             ui_measurements_state.ui_cpu_data = cpu_data.clone();
@@ -80,6 +84,8 @@ fn draw_ui(
             ui_measurements_state.ui_disk_data = disk_data.clone();
         } else if let Some(socket_data) = res.as_any().downcast_ref::<SocketStatMeasurements>() {
             ui_measurements_state.ui_socket_data = socket_data.clone();
+        } else if let Some(nvidia_gpu_data) = res.as_any().downcast_ref::<NvidiaGpuMeasurements>() {
+            ui_measurements_state.ui_nvidia_gpu_data = nvidia_gpu_data.clone();
         }
 
         frame.render_widget(
@@ -98,7 +104,7 @@ fn draw_ui(
                     .title_alignment(ratatui::layout::Alignment::Center)
                     .border_style(Style::new().green()),
             ),
-            chunks[1],
+            split_second_chunk[0],
         );
         frame.render_widget(
             Paragraph::new(format!("{}", ui_measurements_state.ui_disk_data())).block(
@@ -113,6 +119,15 @@ fn draw_ui(
             Paragraph::new(format!("{}", ui_measurements_state.ui_socket_data())).block(
                 Block::bordered()
                     .title("SocketInfo")
+                    .title_alignment(ratatui::layout::Alignment::Center)
+                    .border_style(Style::new().green()),
+            ),
+            split_second_chunk[1],
+        );
+        frame.render_widget(
+            Paragraph::new(format!("{}", ui_measurements_state.ui_nvidia_gpu_data())).block(
+                Block::bordered()
+                    .title("NvidiaGPU")
                     .title_alignment(ratatui::layout::Alignment::Center)
                     .border_style(Style::new().yellow()),
             ),
