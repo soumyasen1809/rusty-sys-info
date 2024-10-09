@@ -11,13 +11,20 @@ const NVIDIA_GPU_OUTPUT_PATH: &str = "gpu_info.txt";
 const NVIDIA_SMI_COMMAND: &str = "nvidia-smi";
 
 pub async fn run_nvidia_smi_command_on_startup() -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = File::create(NVIDIA_GPU_OUTPUT_PATH)
+        .await
+        .expect("ERROR: Can not create file to write NVIDIA GPU stats");
+    if let Err(e) = process::Command::new(NVIDIA_SMI_COMMAND).output().await {
+        println!("nvidia_smi_command not supported: {}", e);
+        return Ok(());
+    }
     let command_output = process::Command::new(NVIDIA_SMI_COMMAND)
         .args(&["-q"])
         .output()
-        .await?;
+        .await
+        .expect("ERROR: nvdia-smi command does not work!");
 
     let result = String::from_utf8_lossy(&command_output.stdout);
-    let mut file = File::create(NVIDIA_GPU_OUTPUT_PATH).await?;
     file.write_all(result.as_bytes()).await?;
 
     Ok(())
@@ -150,5 +157,5 @@ where
     let gpu_val_numeric = gpu_val_str.split(" ").collect::<Vec<&str>>();
     Ok(gpu_val_numeric[0]
         .parse::<T>()
-        .expect("Can not parse to numeric value"))
+        .expect("ERROR: Can not parse to numeric value"))
 }
