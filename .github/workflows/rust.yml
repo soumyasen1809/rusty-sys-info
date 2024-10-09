@@ -20,7 +20,8 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Run app sequential
-      run: cargo run --verbose -j1
-    - name: Run app multithreaded
-      run: cargo run --verbose -j 16
+    # Can not run the app - since it uses ratatui
+    # - name: Run app sequential
+    #   run: cargo run --verbose -j1 || cat gpu_info.txt
+    # - name: Run app multithreaded
+    #   run: cargo run --verbose -j 16 || cat gpu_info.txt
