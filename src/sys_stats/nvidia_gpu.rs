@@ -8,24 +8,24 @@ use tokio::{
 use crate::Measurements;
 
 const NVIDIA_GPU_OUTPUT_PATH: &str = "gpu_info.txt";
-// const NVIDIA_SMI_COMMAND: &str = "nvidia-smi --query-gpu=gpu_name,utilization.memory --format=csv";
-// The above command will not work. We need .args() to add the arguments after the base command.
-// Note the base command is nvidia-smi
 const NVIDIA_SMI_COMMAND: &str = "nvidia-smi";
 
 pub async fn run_nvidia_smi_command_on_startup() -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = File::create(NVIDIA_GPU_OUTPUT_PATH)
+        .await
+        .expect("ERROR: Can not create file to write NVIDIA GPU stats");
+    if let Err(e) = process::Command::new(NVIDIA_SMI_COMMAND).output().await {
+        println!("nvidia_smi_command not supported: {}", e);
+        return Ok(());
+    }
     let command_output = process::Command::new(NVIDIA_SMI_COMMAND)
         .args(&["-q"])
-        // .arg("--query-gpu=name,temperature.gpu,power.draw,power.limit,memory.used,memory.total")
-        // .arg("--format=csv")
         .output()
-        .await?;
+        .await
+        .expect("ERROR: nvdia-smi command does not work!");
 
     let result = String::from_utf8_lossy(&command_output.stdout);
-    let mut file = File::create(NVIDIA_GPU_OUTPUT_PATH).await?;
     file.write_all(result.as_bytes()).await?;
-
-    nvidia_gpu_measurements().await?; // Remove from here, temp placement
 
     Ok(())
 }
@@ -157,5 +157,5 @@ where
     let gpu_val_numeric = gpu_val_str.split(" ").collect::<Vec<&str>>();
     Ok(gpu_val_numeric[0]
         .parse::<T>()
-        .expect("Can not parse to numeric value"))
+        .expect("ERROR: Can not parse to numeric value"))
 }
