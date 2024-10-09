@@ -1,6 +1,3 @@
-use std::io::{self, stdout};
-use tokio::sync::mpsc::Receiver;
-
 use ratatui::{
     backend::CrosstermBackend,
     crossterm::{
@@ -13,6 +10,8 @@ use ratatui::{
     widgets::{Block, Paragraph},
     Frame, Terminal,
 };
+use std::io::{self, stdout};
+use tokio::sync::mpsc::Receiver;
 
 use crate::{
     sys_stats::{
