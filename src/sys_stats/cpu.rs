@@ -9,7 +9,7 @@ use crate::Measurements;
 
 const CPU_MEAS_PATH: &str = "/proc/stat";
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct CpuTime {
     cpu_id: String,
     user_time: u64,
@@ -62,7 +62,7 @@ impl Display for CpuTime {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Clone)]
 pub struct CpuMeasurements {
     cpu_time: Vec<CpuTime>,
 }
@@ -88,6 +88,10 @@ impl Measurements for CpuMeasurements {
         for meas in self.cpu_time() {
             println!("{}", meas);
         }
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }
 

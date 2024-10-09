@@ -9,7 +9,7 @@ use crate::Measurements;
 
 const DISK_STAT_PATH: &str = "/proc/diskstats";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sd {
     name: String,
     version: String, // Major number.Minor number
@@ -58,7 +58,7 @@ impl Sd {
 
 impl Display for Sd {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}, version: {}, reads completed successfully: {}, writes completed successfully: {}, I/Os currently in progress: {}", self.name(), self.version(), self.reads_completed(), self.writes_completed(), self.io_in_progress())
+        write!(f, "{}, \nversion: {}, \nreads completed successfully: {}, \nwrites completed successfully: {}, \nI/Os currently in progress: {}", self.name(), self.version(), self.reads_completed(), self.writes_completed(), self.io_in_progress())
     }
 }
 
@@ -78,7 +78,7 @@ impl Display for Sd {
 /// Time spent doing I/Os (ms): The amount of time (in milliseconds) that has been spent doing I/O operations.
 /// Weighted time spent doing I/Os (ms): The amount of time (in milliseconds) that has been spent doing I/O operations, weighted by the time that the I/O operations take.
 /// https://cleveruptime.com/docs/files/proc-diskstats
-#[derive(Debug)]
+#[derive(Default, Clone)]
 pub struct DiskStatMeasurements {
     sd_utilization: Vec<Sd>,
 }
@@ -95,7 +95,7 @@ impl DiskStatMeasurements {
 
 impl Display for DiskStatMeasurements {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.sd_utilization())
+        write!(f, "{:#?}", self.sd_utilization())
     }
 }
 
@@ -104,6 +104,10 @@ impl Measurements for DiskStatMeasurements {
         for sd in self.sd_utilization() {
             println!("{}", sd);
         }
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }
 

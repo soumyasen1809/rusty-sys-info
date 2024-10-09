@@ -1,8 +1,12 @@
-pub mod cpu;
-pub mod disk;
-pub mod memory;
-pub mod socket;
+use std::any::Any;
+use std::fmt::Display;
 
-pub trait Measurements: Send + Sync {
-    fn print_info(&self) {}
+pub mod sys_stats;
+pub mod ui;
+
+pub trait Measurements: Send + Sync + Display {
+    fn print_info(&self);
+    fn as_any(&self) -> &dyn Any; // The downcast_ref method is available for Any,
+                                  // but Box<dyn Measurements> doesn’t directly support it.
+                                  // Instead, you can use the Any trait to perform type checking and downcasting.
 }

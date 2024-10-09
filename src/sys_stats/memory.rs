@@ -9,6 +9,7 @@ use crate::Measurements;
 
 const MEMORY_MEAS_PATH: &str = "/proc/meminfo";
 
+#[derive(Default, Clone)]
 pub struct MemoryMeasurments {
     mem_total: u64,
     mem_free: u64,
@@ -52,6 +53,10 @@ impl Display for MemoryMeasurments {
 impl Measurements for MemoryMeasurments {
     fn print_info(&self) {
         println!("{}", self);
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }
 
